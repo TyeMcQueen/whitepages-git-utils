@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Report branch status for all your tracking branches
+#
+
+bold="\033[1m"
+norm="\033[0m"
+
+function print_status() {
+	branch=$1
+    track=`git config branch.$branch.remote`/`git config branch.$branch.merge | sed 's/.*\///'`
+	if [ "$track" != "/" ]; then
+		behind=`git log --pretty=oneline $branch..$track | wc -l`
+		ahead=`git log --pretty=oneline $track..$branch | wc -l`
+		if [ "$behind" != "0" ] && [ "$ahead" != "0" ]; then
+			echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
+		elif [ "$behind" != "0" ]; then
+			echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
+		elif [ "$ahead" != "0" ]; then
+			echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
+		else
+			echo -e "# = $branch is ${bold}current${norm} with $track"
+		fi
+	fi
+}
+
+# Current branch
+current_branch=`git branch | grep '*' | sed 's/*//' | sed 's/^ *\| *$//g'`
+if [ "z$current_branch" != "z" ]; then
+	echo "# On branch $current_branch"
+	print_status $current_branch
+
+	# A blank line to separate other branches
+	echo "#"
+fi
+
+# The rest
+for branch in `git branch | grep -v '*'`; do
+	print_status $branch
+done

@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+# Track a branch and check it out with as little typing as possible
+#
+
+if [ "$#" = "0" ]; then
+	echo "Usage: git cob [<remote>] <branch>"
+	echo
+	echo "If you want to create a local branch that tracks a remote branch, while using the same"
+	echo "name, you can use this command instead of typing the name several times in a lengthy"
+	echo "error-prone command."
+	echo
+	echo "Args:"
+	echo "    <remote>   - A remote repository, defaults to 'origin'"
+	echo "    <branch>   - The name of a remote branch"
+	exit 1
+fi
+
+remote=$1;
+branch=$2;
+
+# If no remote was specified, assume origin
+if [ "x$branch" = "x" ]; then
+	branch=$remote
+	remote="origin";
+fi
+
+# If a remote is actually given as part of the branch, split them and use it
+if [ `echo $branch | awk '$1 ~ /\// { print }'` ]; then
+	remote=`echo $branch | sed 's/\/.*//'`
+	branch=`echo $branch | sed 's/.*\///'`
+fi
+
+echo "Attempting to track $branch from $remote"
+git checkout -b $branch $remote/$branch
