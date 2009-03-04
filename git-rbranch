@@ -1,0 +1,37 @@
+#!/bin/bash
+
+if [ "$#" = "0" ]; then
+    echo "Usage: git rbranch [<remote>] <branch>"
+    echo
+    echo "If you want to create a local branch that will later track a remote branch, but"
+	echo "it does not yet exist, you can use this command instead of setting up configuration"
+	echo "manually or deleting and re-creating your local branch later, after it's been pushed."
+    echo
+    echo "Args:"
+    echo "    <remote>   - A remote repository, defaults to 'origin'"
+    echo "    <branch>   - The name of a remote branch"
+    exit 1
+fi
+
+remote=$1;
+branch=$2;
+
+# If no remote was specified, assume origin
+if [ "x$branch" = "x" ]; then
+    branch=$remote
+    remote="origin";
+fi
+
+# If a remote is actually given as part of the branch, split them and use it
+if [ `echo $branch | awk '$1 ~ /\// { print }'` ]; then
+    remote=`echo $branch | sed 's/\/.*//'`
+    branch=`echo $branch | sed 's/.*\///'`
+fi
+
+git config branch.$branch.remote $remote
+git config branch.$branch.merge refs/remotes/$branch
+git branch $branch
+
+if [ $? = "0" ]; then
+	echo "Created branch $branch tracking remote branch $remote/$branch"
+fi

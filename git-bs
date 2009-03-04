@@ -11,32 +11,38 @@ norm="\033[0m"
 
 function print_status() {
 	branch="$1"
-	origin=`git config "branch.$branch.remote"`
-	remote=`git config "branch.$branch.merge" | sed 's/.*\///'`
-	track="$origin/$remote"
+	remote=`git config "branch.$branch.remote"`
+	remote_branch=`git config "branch.$branch.merge" | sed 's/.*\///'`
+	track="$remote/$remote_branch"
 	if [ "/" != "$track" ]; then
-		set -- `git log --pretty=oneline "$branch..$track" | wc -l`
-		behind="$1"
-		set -- `git log --pretty=oneline "$track..$branch" | wc -l`
-		ahead="$1"
-		if [ 0 != "$behind" ] && [ 0 != "$ahead" ]; then
-			echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
-		elif [ 0 != "$behind" ]; then
-			echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
-			if [ pull = "$pull" ]; then
-				echo ""
-				echo "] git checkout $branch"
-				if git checkout "$branch"; then
-					git pull "$origin" "$remote"
-				else
-					pull=''
+		track_exists=$((! `git log $track^! 2>&1 | grep 'unknown revision' | wc -l`))
+		if [ $track_exists = "1" ]; then
+			set -- `git log --pretty=oneline "$branch..$track" | wc -l`
+			behind="$1"
+			set -- `git log --pretty=oneline "$track..$branch" | wc -l`
+			ahead="$1"
+
+			if [ 0 != "$behind" ] && [ 0 != "$ahead" ]; then
+				echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
+			elif [ 0 != "$behind" ]; then
+				echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
+				if [ pull = "$pull" ]; then
+					echo ""
+					echo "] git checkout $branch"
+					if git checkout "$branch"; then
+						git pull "$remote" "$remote_branch:refs/remotes/$remote/$remote_branch"
+					else
+						pull=''
+					fi
+					echo ""
 				fi
-				echo ""
+			elif [ 0 != "$ahead" ]; then
+				echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
+			else
+				echo -e "# = $branch is ${bold}current${norm} with $track"
 			fi
-		elif [ 0 != "$ahead" ]; then
-			echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
 		else
-			echo -e "# = $branch is ${bold}current${norm} with $track"
+			echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
 		fi
 	fi
 }
