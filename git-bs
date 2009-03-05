@@ -3,9 +3,11 @@
 # Report branch status for all your tracking branches
 #
 
+fetch=''    # -f|--fetch specified
+pull=''     # -p|--pull specified
+
 bold="\033[1m"
 norm="\033[0m"
-pull=''
 
 function print_status() {
 	branch="$1"
@@ -22,11 +24,14 @@ function print_status() {
 		elif [ 0 != "$behind" ]; then
 			echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
 			if [ pull = "$pull" ]; then
+				echo ""
+				echo "> git checkout $branch"
 				if git checkout "$branch"; then
 					git pull "$origin" "$remote"
 				else
 					pull=''
 				fi
+				echo ""
 			fi
 		elif [ 0 != "$ahead" ]; then
 			echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
@@ -36,18 +41,32 @@ function print_status() {
 	fi
 }
 
+# TODO: Somebody teach Tye how to use getopt or getopts
+# properly as he gave up trying to figure such out.
 while [ 0 != "$#" ]; do
 	case "$1" in
+		-pf|-fp)
+			pull=pull
+			fetch=fetch
+			;;
 		-p|--pull)
 			pull=pull
 			;;
+		-f|--fetch)
+			fetch=fetch
+			;;
 		*)
-			echo "Unrecognized option ($1). Usage: $0 [-p|--pull]" >&2
+			echo "Unrecognized option ($1). Usage: $0 [-f|--fetch] [-p|--pull]" >&2
 			exit
 			;;
 	esac
 	shift
 done
+
+if [ fetch = "$fetch" ]; then
+	echo '> git fetch'
+	git fetch
+fi
 
 # Current branch
 current_branch=`git branch | grep '*' | sed 's/*//' | sed 's/^ *\| *$//g'`
