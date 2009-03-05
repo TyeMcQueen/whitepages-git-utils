@@ -25,7 +25,7 @@ function print_status() {
 			echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
 			if [ pull = "$pull" ]; then
 				echo ""
-				echo "> git checkout $branch"
+				echo "] git checkout $branch"
 				if git checkout "$branch"; then
 					git pull "$origin" "$remote"
 				else
@@ -64,8 +64,9 @@ while [ 0 != "$#" ]; do
 done
 
 if [ fetch = "$fetch" ]; then
-	echo '> git fetch'
+	echo '] git fetch'
 	git fetch
+	echo ''
 fi
 
 # Current branch
