@@ -8,10 +8,12 @@ norm="\033[0m"
 
 function print_status() {
 	branch=$1
-    track=`git config branch.$branch.remote`/`git config branch.$branch.merge | sed 's/.*\///'`
+	track=`git config branch.$branch.remote`/`git config branch.$branch.merge | sed 's/.*\///'`
 	if [ "$track" != "/" ]; then
-		behind=`git log --pretty=oneline $branch..$track | wc -l`
-		ahead=`git log --pretty=oneline $track..$branch | wc -l`
+		set -- `git log --pretty=oneline $branch..$track | wc -l`
+		behind=$1
+		set -- `git log --pretty=oneline $track..$branch | wc -l`
+		ahead=$1
 		if [ "$behind" != "0" ] && [ "$ahead" != "0" ]; then
 			echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
 		elif [ "$behind" != "0" ]; then
