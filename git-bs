@@ -5,19 +5,29 @@
 
 bold="\033[1m"
 norm="\033[0m"
+pull=''
 
 function print_status() {
 	branch=$1
-	track=`git config branch.$branch.remote`/`git config branch.$branch.merge | sed 's/.*\///'`
+	origin=`git config "branch.$branch.remote"`
+	remote=`git config "branch.$branch.merge" | sed 's/.*\///'`
+	track="$origin/$remote"
 	if [ "$track" != "/" ]; then
-		set -- `git log --pretty=oneline $branch..$track | wc -l`
+		set -- `git log --pretty=oneline "$branch..$track" | wc -l`
 		behind=$1
-		set -- `git log --pretty=oneline $track..$branch | wc -l`
+		set -- `git log --pretty=oneline "$track..$branch" | wc -l`
 		ahead=$1
 		if [ "$behind" != "0" ] && [ "$ahead" != "0" ]; then
 			echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
 		elif [ "$behind" != "0" ]; then
 			echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
+			if [ pull = "$pull" ]; then
+				if git checkout "$branch"; then
+					git pull "$origin" "$remote"
+				else
+					pull=''
+				fi
+			fi
 		elif [ "$ahead" != "0" ]; then
 			echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
 		else
@@ -25,6 +35,19 @@ function print_status() {
 		fi
 	fi
 }
+
+while [ 0 != "$#" ]; do
+	case "$1" in
+		-p|--pull)
+			pull=pull
+			;;
+		*)
+			echo "Unrecognized option ($1). Usage: $0 [-p|--pull]" >&2
+			exit
+			;;
+	esac
+	shift
+done
 
 # Current branch
 current_branch=`git branch | grep '*' | sed 's/*//' | sed 's/^ *\| *$//g'`
@@ -40,3 +63,7 @@ fi
 for branch in `git branch | grep -v '*'`; do
 	print_status $branch
 done
+
+if [ pull = "$pull" ]; then
+	git checkout "$current_branch"
+fi
