@@ -8,18 +8,18 @@ norm="\033[0m"
 pull=''
 
 function print_status() {
-	branch=$1
+	branch="$1"
 	origin=`git config "branch.$branch.remote"`
 	remote=`git config "branch.$branch.merge" | sed 's/.*\///'`
 	track="$origin/$remote"
-	if [ "$track" != "/" ]; then
+	if [ "/" != "$track" ]; then
 		set -- `git log --pretty=oneline "$branch..$track" | wc -l`
-		behind=$1
+		behind="$1"
 		set -- `git log --pretty=oneline "$track..$branch" | wc -l`
-		ahead=$1
-		if [ "$behind" != "0" ] && [ "$ahead" != "0" ]; then
+		ahead="$1"
+		if [ 0 != "$behind" ] && [ 0 != "$ahead" ]; then
 			echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
-		elif [ "$behind" != "0" ]; then
+		elif [ 0 != "$behind" ]; then
 			echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
 			if [ pull = "$pull" ]; then
 				if git checkout "$branch"; then
@@ -28,7 +28,7 @@ function print_status() {
 					pull=''
 				fi
 			fi
-		elif [ "$ahead" != "0" ]; then
+		elif [ 0 != "$ahead" ]; then
 			echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
 		else
 			echo -e "# = $branch is ${bold}current${norm} with $track"
@@ -53,7 +53,7 @@ done
 current_branch=`git branch | grep '*' | sed 's/*//' | sed 's/^ *\| *$//g'`
 if [ "z$current_branch" != "z" ]; then
 	echo "# On branch $current_branch"
-	print_status $current_branch
+	print_status "$current_branch"
 
 	# A blank line to separate other branches
 	echo "#"
@@ -61,7 +61,7 @@ fi
 
 # The rest
 for branch in `git branch | grep -v '*'`; do
-	print_status $branch
+	print_status "$branch"
 done
 
 if [ pull = "$pull" ]; then
