@@ -4,7 +4,11 @@
 #
 
 fetch=''    # -f|--fetch specified
-pull=''     # -p|--pull specified
+pull=''     # -p|--pull  specified
+opts=''     # -q|--quiet, -v|--verbose specified
+stat=''     # --stat or -n|--no-stat specified (only for pull)
+# Is -q useful enough on fetch/pull?  It seems to have
+# little effect on fetch and no effect on pull?
 
 bold="\033[1m"
 norm="\033[0m"
@@ -15,8 +19,9 @@ function print_status() {
 	remote_branch=`git config "branch.$branch.merge" | sed 's/.*\///'`
 	track="$remote/$remote_branch"
 	if [ "/" != "$track" ]; then
-		track_exists=$((! `git log $track^! 2>&1 | grep 'unknown revision' | wc -l`))
-		if [ $track_exists = "1" ]; then
+		if git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
+			echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
+		else
 			set -- `git log --pretty=oneline "$branch..$track" | wc -l`
 			behind="$1"
 			set -- `git log --pretty=oneline "$track..$branch" | wc -l`
@@ -30,7 +35,8 @@ function print_status() {
 					echo ""
 					echo "] git checkout $branch"
 					if git checkout "$branch"; then
-						git pull "$remote" "$remote_branch:refs/remotes/$remote/$remote_branch"
+						echo "] git pull$stat$opts $remote $remote_branch:refs/remotes/$remote/$remote_branch"
+						git pull $stat $opts "$remote" "$remote_branch:refs/remotes/$remote/$remote_branch"
 					else
 						pull=''
 					fi
@@ -41,37 +47,50 @@ function print_status() {
 			else
 				echo -e "# = $branch is ${bold}current${norm} with $track"
 			fi
-		else
-			echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
 		fi
 	fi
 }
 
-# TODO: Somebody teach Tye how to use getopt or getopts
-# properly as he gave up trying to figure such out.
+GETOPT=`getopt -o fpqvn --long fetch,pull,quiet,verbose,stat,no-stat -- "$@"`
+if [ $? != 0 ]; then
+	echo "Usage: $0 [-fpqvn] [--stat]" >&2
+	echo "Short for: --fetch --pull --quiet --verbose --no-stat" >&2
+	exit 1
+fi
+set -- $GETOPT
+
 while [ 0 != "$#" ]; do
 	case "$1" in
-		-pf|-fp)
-			pull=pull
+		-f|--fetch)
 			fetch=fetch
 			;;
 		-p|--pull)
 			pull=pull
 			;;
-		-f|--fetch)
-			fetch=fetch
+		-q|--quiet|-v|--verbose)
+			opts="$opts $1"
+			;;
+		--stat|-n|--no-stat)
+			stat=" $1"
+			;;
+		--)
+			shift
+			if [ 0 != "$#" ]; then
+				echo "Too many arguments ($*)" >&2
+				exit 1
+			fi
 			;;
 		*)
-			echo "Unrecognized option ($1). Usage: $0 [-f|--fetch] [-p|--pull]" >&2
-			exit
+			echo "Unrecognized option ($1)??" >&2
+			exit 1
 			;;
 	esac
 	shift
 done
 
 if [ fetch = "$fetch" ]; then
-	echo '] git fetch'
-	git fetch
+	echo "] git fetch$opts"
+	git fetch $opts
 	echo ''
 fi
 
