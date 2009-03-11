@@ -18,35 +18,34 @@ function print_status() {
 	remote=`git config "branch.$branch.remote"`
 	remote_branch=`git config "branch.$branch.merge" | sed 's/.*\///'`
 	track="$remote/$remote_branch"
-	if [ "/" != "$track" ]; then
-		if git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
-			echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
-		else
-			set -- `git log --pretty=oneline "$branch..$track" | wc -l`
-			behind="$1"
-			set -- `git log --pretty=oneline "$track..$branch" | wc -l`
-			ahead="$1"
 
-			if [ 0 != "$behind" ] && [ 0 != "$ahead" ]; then
-				echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
-			elif [ 0 != "$behind" ]; then
-				echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
-				if [ pull = "$pull" ]; then
-					echo ""
-					echo "] git checkout $branch"
-					if git checkout "$branch"; then
-						echo "] git pull$stat$opts $remote $remote_branch:refs/remotes/$remote/$remote_branch"
-						git pull $stat $opts "$remote" "$remote_branch:refs/remotes/$remote/$remote_branch"
-					else
-						pull=''
-					fi
-					echo ""
+	if git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
+		echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
+	else
+		set -- `git log --pretty=oneline "$branch..$track" | wc -l`
+		behind="$1"
+		set -- `git log --pretty=oneline "$track..$branch" | wc -l`
+		ahead="$1"
+
+		if [ 0 != "$behind" ] && [ 0 != "$ahead" ]; then
+			echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
+		elif [ 0 != "$behind" ]; then
+			echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
+			if [ pull = "$pull" ]; then
+				echo ""
+				echo "] git checkout $branch"
+				if git checkout "$branch"; then
+					echo "] git pull$stat$opts $remote $remote_branch:refs/remotes/$remote/$remote_branch"
+					git pull $stat $opts "$remote" "$remote_branch:refs/remotes/$remote/$remote_branch"
+				else
+					pull=''
 				fi
-			elif [ 0 != "$ahead" ]; then
-				echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
-			else
-				echo -e "# = $branch is ${bold}current${norm} with $track"
+				echo ""
 			fi
+		elif [ 0 != "$ahead" ]; then
+			echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
+		else
+			echo -e "# = $branch is ${bold}current${norm} with $track"
 		fi
 	fi
 }
@@ -95,8 +94,9 @@ if [ fetch = "$fetch" ]; then
 fi
 
 # Current branch
-current_branch=`git branch | grep '*' | sed 's/*//' | sed 's/^ *\| *$//g'`
-if [ "z$current_branch" != "z" ]; then
+set -- `git branch | grep '*' | sed 's/*//'`
+current_branch=$1
+if [ "z$current_branch" != "z" ] && [ "z$current_branch" != "(no branch)" ]; then
 	echo "# On branch $current_branch"
 	print_status "$current_branch"
 
@@ -105,7 +105,16 @@ if [ "z$current_branch" != "z" ]; then
 fi
 
 # The rest
-for branch in `git branch | grep -v '*'`; do
+branches=$(git branch | grep -v '*' |
+	$(
+		echo "echo"; # the outer $() runs a command; it needs a verb
+		while read branch; do
+			[ -n "`git config \"branch.$branch.merge\"`" ] && echo $branch;
+		done
+	)
+)
+
+for branch in $branches; do
 	print_status "$branch"
 done
 
