@@ -35,8 +35,8 @@ function print_status() {
 				echo ""
 				echo "] git checkout $branch"
 				if git checkout "$branch"; then
-					echo "] git pull$stat$opts $remote $remote_branch:refs/remotes/$remote/$remote_branch"
-					git pull $stat $opts "$remote" "$remote_branch:refs/remotes/$remote/$remote_branch"
+					echo "] git merge$stat$opts $track"
+					git merge $stat $opts "$track"
 				else
 					pull=''
 				fi
@@ -64,6 +64,8 @@ while [ 0 != "$#" ]; do
 			fetch=fetch
 			;;
 		-p|--pull)
+			# pull implies fetch (and we're not doing a literal pull)
+			fetch=fetch
 			pull=pull
 			;;
 		-q|--quiet|-v|--verbose)
@@ -88,9 +90,11 @@ while [ 0 != "$#" ]; do
 done
 
 if [ fetch = "$fetch" ]; then
-	echo "] git fetch$opts"
-	git fetch $opts
-	echo ''
+	for remote in `git remote`; do
+		echo "] git fetch$opts $remote"
+		git fetch $opts "$remote"
+		echo ''
+	done
 fi
 
 # Current branch
