@@ -7,6 +7,7 @@ fetch=''    # -f|--fetch specified
 pull=''     # -p|--pull  specified
 noise=''    # -q|--quiet, -v|--verbose specified
 stat=''     # --stat or -n|--no-stat specified (only for pull)
+stash=''    # -s|--stash specified
 # Is -q useful enough on fetch/pull?  It seems to have
 # little effect on fetch and no effect on pull?
 
@@ -50,10 +51,10 @@ function print_status() {
 	fi
 }
 
-GETOPT=`getopt -o fpqvn --long fetch,pull,quiet,verbose,stat,no-stat -- "$@"`
+GETOPT=`getopt -o fpqvns --long fetch,pull,quiet,verbose,stat,no-stat,stash -- "$@"`
 if [ $? != 0 ]; then
-	echo "Usage: $0 [-fpqvn] [--stat]" >&2
-	echo "Short for: --fetch --pull --quiet --verbose --no-stat" >&2
+	echo "Usage: $0 [-fpqvns] [--stat]" >&2
+	echo "Short for: --fetch --pull --quiet --verbose --no-stat --stash" >&2
 	exit 1
 fi
 set -- $GETOPT
@@ -73,6 +74,9 @@ while [ 0 != "$#" ]; do
 			;;
 		--stat|-n|--no-stat)
 			stat=" $1"
+			;;
+		--stash|-s)
+			stash="stash"
 			;;
 		--)
 			shift
@@ -96,6 +100,16 @@ if [ fetch = "$fetch" ]; then
 		echo ''
 	done
 fi
+
+if [ stash = "$stash" ] && [ pull = "$pull" ]; then
+	echo ""
+	echo "] git stash save git-bs auto-stash"
+	output=`git stash save git-bs auto-stash`
+	echo $output
+	if echo $output | grep "No local changes" >/dev/null 2>&1; then
+		stash=""
+	fi
+fi;
 
 # Current branch
 set -- `git branch | grep '*' | sed 's/*//'`
@@ -124,4 +138,10 @@ done
 
 if [ "" != "$pull" ]; then
 	git checkout "$current_branch"
+fi
+
+if [ stash = "$stash" ]; then
+	echo ""
+	echo "] git stash pop"
+	git stash pop
 fi
