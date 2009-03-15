@@ -140,7 +140,7 @@ if [ "" != "$pull" ]; then
 	git checkout "$current_branch"
 fi
 
-if [ stash = "$stash" ]; then
+if [ stash = "$stash" ] && [ pull = "$pull" ]; then
 	echo ""
 	echo "] git stash pop"
 	git stash pop
