@@ -29,7 +29,7 @@ if [ `echo $branch | awk '$1 ~ /\// { print }'` ]; then
 fi
 
 git config branch.$branch.remote $remote
-git config branch.$branch.merge refs/remotes/$branch
+git config branch.$branch.merge refs/heads/$branch
 git branch $branch
 
 if [ $? = "0" ]; then

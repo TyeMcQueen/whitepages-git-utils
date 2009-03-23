@@ -16,9 +16,9 @@ norm="\033[0m"
 
 function print_status() {
 	branch="$1"
-	remote=`git config "branch.$branch.remote"`
-	remote_branch=`git config "branch.$branch.merge" | sed 's/.*\///'`
-	track="$remote/$remote_branch"
+	remote="`git config "branch.$branch.remote"`"
+	remote_branch="`git config "branch.$branch.merge"`"
+	track="$remote/${remote_branch##*/}"
 
 	if git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
 		echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"

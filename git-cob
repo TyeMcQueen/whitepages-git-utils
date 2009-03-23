@@ -4,6 +4,7 @@
 #
 
 if [ "$#" = "0" ]; then
+<<<<<<< sandbox_tye_git_tools:bin/git-cob
 	echo "Usage: git cob [<remote>] <branch>"
 	echo
 	echo "If you want to create a local branch that tracks a remote branch, while using the same"
@@ -14,6 +15,21 @@ if [ "$#" = "0" ]; then
 	echo "    <remote>   - A remote repository, defaults to 'origin'"
 	echo "    <branch>   - The name of a remote branch"
 	exit 1
+=======
+    echo "Usage: git cob [<remote>] <branch>"
+    echo
+    echo "Check Out Branch"
+    echo
+    echo "If you want to create a local branch that tracks a remote branch,"
+    echo "while using the same name, you can use this command instead of"
+    echo "typing the name several times in lengthy, error-prone command(s)."
+    echo "Lots of special cases are detected and handled."
+    echo
+    echo "Args:"
+    echo "    <remote>   - A remote repository, defaults to 'origin'"
+    echo "    <branch>   - The name of a remote branch"
+    exit 1
+>>>>>>> local:bin/git-cob
 fi
 
 remote=$1;
@@ -31,5 +47,38 @@ if [ `echo $branch | awk '$1 ~ /\// { print }'` ]; then
 	branch=`echo $branch | sed 's/.*\///'`
 fi
 
+<<<<<<< sandbox_tye_git_tools:bin/git-cob
 echo "Attempting to track $branch from $remote"
 git checkout -b $branch $remote/$branch
+=======
+track_remote="`git config "branch.$branch.remote"`"
+track_branch="`git config "branch.$branch.merge"`"
+track_branch="${track_branch##*/}"
+if [ "x$remote" = "x$track_remote" -a "x$branch" = "x$track_branch" ]; then
+    echo "$branch already tracks $remote/$branch."
+    echo "] git checkout $branch"
+    git checkout "$branch"
+elif [ "x$track_remote" != x ]; then
+    echo "$branch tracks $track_remote/$track_branch, not $remote/$branch!"
+    exit 1
+elif ! git branch -r | cat -E | grep -qF " $remote/$branch\$"; then
+    echo "There is no $remote/$branch (tracking) branch!"
+    exit 1
+elif ! git branch | cat -E | grep -qF " $branch\$"; then
+    echo "Attempting to checkout and have $branch track from $remote:"
+    echo "] git checkout -b $branch $remote/$branch"
+    git checkout -b "$branch" "$remote/$branch"
+elif git log --pretty=oneline "$remote/$branch..$branch" | grep -q .; then
+    echo "Making $branch track $remote/$branch would lose information!"
+    exit 1
+else
+    echo "Replacing $branch to track $remote/$branch:"
+    echo "] git checkout HEAD # Make sure we don't have $branch checked out"
+    git checkout "$remote/$branch" || exit $?
+    echo "] git branch -D $branch # Delete non-tracking local branch"
+    git branch -D "$branch" || exit $?
+    echo "] git checkout -b $branch $remote/$branch"
+    git checkout -b "$branch" "$remote/$branch"
+fi
+exit $?
+>>>>>>> local:bin/git-cob
