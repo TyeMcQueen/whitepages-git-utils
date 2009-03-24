@@ -4,18 +4,6 @@
 #
 
 if [ "$#" = "0" ]; then
-<<<<<<< sandbox_tye_git_tools:bin/git-cob
-	echo "Usage: git cob [<remote>] <branch>"
-	echo
-	echo "If you want to create a local branch that tracks a remote branch, while using the same"
-	echo "name, you can use this command instead of typing the name several times in a lengthy"
-	echo "error-prone command."
-	echo
-	echo "Args:"
-	echo "    <remote>   - A remote repository, defaults to 'origin'"
-	echo "    <branch>   - The name of a remote branch"
-	exit 1
-=======
     echo "Usage: git cob [<remote>] <branch>"
     echo
     echo "Check Out Branch"
@@ -29,7 +17,6 @@ if [ "$#" = "0" ]; then
     echo "    <remote>   - A remote repository, defaults to 'origin'"
     echo "    <branch>   - The name of a remote branch"
     exit 1
->>>>>>> local:bin/git-cob
 fi
 
 remote=$1;
@@ -37,20 +24,16 @@ branch=$2;
 
 # If no remote was specified, assume origin
 if [ "x$branch" = "x" ]; then
-	branch=$remote
-	remote="origin";
+    branch=$remote
+    remote="origin";
 fi
 
 # If a remote is actually given as part of the branch, split them and use it
 if [ `echo $branch | awk '$1 ~ /\// { print }'` ]; then
-	remote=`echo $branch | sed 's/\/.*//'`
-	branch=`echo $branch | sed 's/.*\///'`
+    remote=`echo $branch | sed 's/\/.*//'`
+    branch=`echo $branch | sed 's/.*\///'`
 fi
 
-<<<<<<< sandbox_tye_git_tools:bin/git-cob
-echo "Attempting to track $branch from $remote"
-git checkout -b $branch $remote/$branch
-=======
 track_remote="`git config "branch.$branch.remote"`"
 track_branch="`git config "branch.$branch.merge"`"
 track_branch="${track_branch##*/}"
@@ -81,4 +64,3 @@ else
     git checkout -b "$branch" "$remote/$branch"
 fi
 exit $?
->>>>>>> local:bin/git-cob
