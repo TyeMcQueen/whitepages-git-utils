@@ -5,7 +5,7 @@
 
 fetch=''    # -f|--fetch specified
 pull=''     # -p|--pull  specified
-opts=''     # -q|--quiet, -v|--verbose specified
+noise=''    # -q|--quiet, -v|--verbose specified
 stat=''     # --stat or -n|--no-stat specified (only for pull)
 # Is -q useful enough on fetch/pull?  It seems to have
 # little effect on fetch and no effect on pull?
@@ -35,10 +35,10 @@ function print_status() {
 				echo ""
 				echo "] git checkout $branch"
 				if git checkout "$branch"; then
-					echo "] git merge$stat$opts $track"
-					git merge $stat $opts "$track"
+					echo "] git merge$stat $track"
+					git merge $stat "$track"
 				else
-					pull=''
+					pull='error'
 				fi
 				echo ""
 			fi
@@ -69,7 +69,7 @@ while [ 0 != "$#" ]; do
 			pull=pull
 			;;
 		-q|--quiet|-v|--verbose)
-			opts="$opts $1"
+			noise="$1"
 			;;
 		--stat|-n|--no-stat)
 			stat=" $1"
@@ -91,8 +91,8 @@ done
 
 if [ fetch = "$fetch" ]; then
 	for remote in `git remote`; do
-		echo "] git fetch$opts $remote"
-		git fetch $opts "$remote"
+		echo "] git fetch$noise $remote"
+		git fetch $noise "$remote"
 		echo ''
 	done
 fi
@@ -122,6 +122,6 @@ for branch in $branches; do
 	print_status "$branch"
 done
 
-if [ pull = "$pull" ]; then
+if [ "" != "$pull" ]; then
 	git checkout "$current_branch"
 fi
