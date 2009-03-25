@@ -4,8 +4,8 @@ if [ "$#" = "0" ]; then
     echo "Usage: git rbranch [<remote>] <branch>"
     echo
     echo "If you want to create a local branch that will later track a remote branch, but"
-	echo "it does not yet exist, you can use this command instead of setting up configuration"
-	echo "manually or deleting and re-creating your local branch later, after it's been pushed."
+    echo "it does not yet exist, you can use this command instead of setting up configuration"
+    echo "manually or deleting and re-creating your local branch later, after it's been pushed."
     echo
     echo "Args:"
     echo "    <remote>   - A remote repository, defaults to 'origin'"
@@ -33,5 +33,5 @@ git config branch.$branch.merge refs/heads/$branch
 git branch $branch
 
 if [ $? = "0" ]; then
-	echo "Created branch $branch tracking remote branch $remote/$branch"
+    echo "Created branch $branch tracking remote branch $remote/$branch"
 fi
