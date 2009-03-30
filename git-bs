@@ -116,7 +116,10 @@ set -- `git branch | grep '*' | sed 's/*//'`
 current_branch=$1
 if [ "z$current_branch" != "z" ] && [ "z$current_branch" != "(no branch)" ]; then
 	echo "# On branch $current_branch"
-	print_status "$current_branch"
+
+	if [ -n "`git config \"branch.$current_branch.merge\"`" ]; then
+		print_status "$current_branch"
+	fi
 
 	# A blank line to separate other branches
 	echo "#"
