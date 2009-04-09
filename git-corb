@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Track a branch and check it out with as little typing as possible
 #

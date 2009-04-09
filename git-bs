@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Report branch status for all your tracking branches
 #
@@ -15,136 +15,136 @@ bold="\033[1m"
 norm="\033[0m"
 
 function print_status() {
-	branch="$1"
-	remote="`git config "branch.$branch.remote"`"
-	remote_branch="`git config "branch.$branch.merge"`"
-	track="$remote/${remote_branch##*/}"
+    branch="$1"
+    remote="`git config "branch.$branch.remote"`"
+    remote_branch="`git config "branch.$branch.merge"`"
+    track="$remote/${remote_branch##*/}"
 
-	if git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
-		echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
-	else
-		set -- `git log --pretty=oneline "$branch..$track" | wc -l`
-		behind="$1"
-		set -- `git log --pretty=oneline "$track..$branch" | wc -l`
-		ahead="$1"
+    if git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
+        echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
+    else
+        set -- `git log --pretty=oneline "$branch..$track" | wc -l`
+        behind="$1"
+        set -- `git log --pretty=oneline "$track..$branch" | wc -l`
+        ahead="$1"
 
-		if [ 0 != "$behind" ] && [ 0 != "$ahead" ]; then
-			echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
-		elif [ 0 != "$behind" ]; then
-			echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
-			if [ pull = "$pull" ]; then
-				echo ""
-				echo "] git checkout $branch"
-				if git checkout "$branch"; then
-					echo "] git merge$stat $track"
-					git merge $stat "$track"
-				else
-					pull='error'
-				fi
-				echo ""
-			fi
-		elif [ 0 != "$ahead" ]; then
-			echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
-		else
-			echo -e "# = $branch is ${bold}current${norm} with $track"
-		fi
-	fi
+        if [ 0 != "$behind" ] && [ 0 != "$ahead" ]; then
+            echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
+        elif [ 0 != "$behind" ]; then
+            echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
+            if [ pull = "$pull" ]; then
+                echo ""
+                echo "] git checkout $branch"
+                if git checkout "$branch"; then
+                    echo "] git merge$stat $track"
+                    git merge $stat "$track"
+                else
+                    pull='error'
+                fi
+                echo ""
+            fi
+        elif [ 0 != "$ahead" ]; then
+            echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
+        else
+            echo -e "# = $branch is ${bold}current${norm} with $track"
+        fi
+    fi
 }
 
 GETOPT=`getopt -o fpqvns --long fetch,pull,quiet,verbose,stat,no-stat,stash -- "$@"`
 if [ $? != 0 ]; then
-	echo "Usage: $0 [-fpqvns] [--stat]" >&2
-	echo "Short for: --fetch --pull --quiet --verbose --no-stat --stash" >&2
-	exit 1
+    echo "Usage: $0 [-fpqvns] [--stat]" >&2
+    echo "Short for: --fetch --pull --quiet --verbose --no-stat --stash" >&2
+    exit 1
 fi
 set -- $GETOPT
 
 while [ 0 != "$#" ]; do
-	case "$1" in
-		-f|--fetch)
-			fetch=fetch
-			;;
-		-p|--pull)
-			# pull implies fetch (and we're not doing a literal pull)
-			fetch=fetch
-			pull=pull
-			;;
-		-q|--quiet|-v|--verbose)
-			noise="$1"
-			;;
-		--stat|-n|--no-stat)
-			stat=" $1"
-			;;
-		--stash|-s)
-			stash="stash"
-			;;
-		--)
-			shift
-			if [ 0 != "$#" ]; then
-				echo "Too many arguments ($*)" >&2
-				exit 1
-			fi
-			;;
-		*)
-			echo "Unrecognized option ($1)??" >&2
-			exit 1
-			;;
-	esac
-	shift
+    case "$1" in
+        -f|--fetch)
+            fetch=fetch
+            ;;
+        -p|--pull)
+            # pull implies fetch (and we're not doing a literal pull)
+            fetch=fetch
+            pull=pull
+            ;;
+        -q|--quiet|-v|--verbose)
+            noise="$1"
+            ;;
+        --stat|-n|--no-stat)
+            stat=" $1"
+            ;;
+        --stash|-s)
+            stash="stash"
+            ;;
+        --)
+            shift
+            if [ 0 != "$#" ]; then
+                echo "Too many arguments ($*)" >&2
+                exit 1
+            fi
+            ;;
+        *)
+            echo "Unrecognized option ($1)??" >&2
+            exit 1
+            ;;
+    esac
+    shift
 done
 
 if [ fetch = "$fetch" ]; then
-	for remote in `git remote`; do
-		echo "] git fetch$noise $remote"
-		git fetch $noise "$remote"
-		echo ''
-	done
+    for remote in `git remote`; do
+        echo "] git fetch$noise $remote"
+        git fetch $noise "$remote"
+        echo ''
+    done
 fi
 
 if [ stash = "$stash" ] && [ pull = "$pull" ]; then
-	echo ""
-	echo "] git stash save git-bs auto-stash"
-	output=`git stash save git-bs auto-stash`
-	echo $output
-	if echo $output | grep "No local changes" >/dev/null 2>&1; then
-		stash=""
-	fi
+    echo ""
+    echo "] git stash save git-bs auto-stash"
+    output=`git stash save git-bs auto-stash`
+    echo $output
+    if echo $output | grep "No local changes" >/dev/null 2>&1; then
+        stash=""
+    fi
 fi;
 
 # Current branch
 set -- `git branch | grep '*' | sed 's/*//'`
 current_branch=$1
 if [ "z$current_branch" != "z" ] && [ "z$current_branch" != "(no branch)" ]; then
-	echo "# On branch $current_branch"
+    echo "# On branch $current_branch"
 
-	if [ -n "`git config \"branch.$current_branch.merge\"`" ]; then
-		print_status "$current_branch"
-	fi
+    if [ -n "`git config \"branch.$current_branch.merge\"`" ]; then
+        print_status "$current_branch"
+    fi
 
-	# A blank line to separate other branches
-	echo "#"
+    # A blank line to separate other branches
+    echo "#"
 fi
 
 # The rest
 branches=$(git branch | grep -v '*' |
-	$(
-		echo "echo"; # the outer $() runs a command; it needs a verb
-		while read branch; do
-			[ -n "`git config \"branch.$branch.merge\"`" ] && echo $branch;
-		done
-	)
+    $(
+        echo "echo"; # the outer $() runs a command; it needs a verb
+        while read branch; do
+            [ -n "`git config \"branch.$branch.merge\"`" ] && echo $branch;
+        done
+    )
 )
 
 for branch in $branches; do
-	print_status "$branch"
+    print_status "$branch"
 done
 
 if [ "" != "$pull" ]; then
-	git checkout "$current_branch"
+    git checkout "$current_branch"
 fi
 
 if [ stash = "$stash" ] && [ pull = "$pull" ]; then
-	echo ""
-	echo "] git stash pop"
-	git stash pop
+    echo ""
+    echo "] git stash pop"
+    git stash pop
 fi
