@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# This will fetch and merge only the branch you're currently in, avoiding
+# fetches that you aren't interested in and possibly avoiding "non-fast-forward"
+# messages on pushes
+#
+
+branch=`git name-rev --name-only HEAD`
+remote=`git config --get "branch.$branch.remote"`
+merge=`git config --get "branch.$branch.merge" | sed 's/refs\/heads\///'`
+
+if [ "x$remote" = "x" ] || [ "x$merge" = "x" ]; then
+    echo 'Your branch is not tracking a remote branch.  Consider using "git corb"'
+    exit 1
+fi
+
+git pull $remote $branch:refs/remotes/$remote/$merge
