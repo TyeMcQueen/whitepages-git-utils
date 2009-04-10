@@ -78,8 +78,15 @@ else
     git config "branch.$branch.merge" "refs/heads/$branch"
     echo -n "Created branch $branch tracking $remote/$branch from "
     if [ -n "$from" ]; then
-        echo -n "$from"
-        echo
+        echo "$from"
+    else
+        head=`git symbolic-ref HEAD 2>/dev/null`
+        head=${head##refs/heads/}
+        if [ -n "$head" ]; then
+            echo "$head"
+        else
+            echo HEAD
+        fi
     fi
 fi
 
