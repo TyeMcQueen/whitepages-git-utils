@@ -1,7 +1,13 @@
 #!/bin/bash
 
-if [ "$#" = "0" ]; then
-    echo "Usage: git rbranch [<remote>] <branch> [<from>]"
+checkout=yes
+if [ x-c = "x$1" ]; then
+    checkout=no
+    shift
+fi
+
+if [ $# -lt 1 -o 3 -lt $# ]; then
+    echo "Usage: git rbranch [-c] [<remote>] <branch> [<from>]"
     echo
     echo "If you want to create a local branch that will later track a remote"
     echo "branch, but it does not yet exist, you can use this command instead"
@@ -9,6 +15,7 @@ if [ "$#" = "0" ]; then
     echo "your local branch later, after it's been pushed."
     echo
     echo "Args:"
+    echo "    -c         - Only create the branch, don't check it out"
     echo "    <remote>   - A remote repository, defaults to 'origin'"
     echo "    <branch>   - The name of a remote branch"
     echo "    <from>     - Starting point for the new branch"
@@ -70,4 +77,9 @@ else
         fi
         echo
     fi
+fi
+
+if [ yes = "$checkout" ]; then
+    echo "] git checkout $branch"
+    git checkout "$branch"
 fi
