@@ -1,13 +1,14 @@
 #!/bin/bash
 #
-# Report branch status for all your tracking branches
-#
+# git Branch Sync
+# Report branch status for all your tracking branches and optionally sync them
 
 fetch=''    # -f|--fetch specified
 pull=''     # -p|--pull  specified
 noise=''    # -q|--quiet, -v|--verbose specified
 stat=''     # --stat or -n|--no-stat specified (only for pull)
 stash=''    # -s|--stash specified
+local=show  # -r|--remote-only specified
 # Is -q useful enough on fetch/pull?  It seems to have
 # little effect on fetch and no effect on pull?
 
@@ -20,7 +21,11 @@ function print_status() {
     remote_branch="`git config "branch.$branch.merge"`"
     track="$remote/${remote_branch##*/}"
 
-    if git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
+    if [ "/" = "$track" ]; then
+        if [ show = "$local" ]; then
+            echo -e "# . $branch is only ${bold}local${norm}"
+        fi
+    elif git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
         echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
     else
         set -- `git log --pretty=oneline "$branch..$track" | wc -l`
@@ -51,10 +56,10 @@ function print_status() {
     fi
 }
 
-GETOPT=`getopt -o fpqvns --long fetch,pull,quiet,verbose,stat,no-stat,stash -- "$@"`
+GETOPT=`getopt -o fnpqrsv --long fetch,no-stat,pull,quiet,remote-only,stash,verbose,stat -- "$@"`
 if [ $? != 0 ]; then
-    echo "Usage: $0 [-fpqvns] [--stat]" >&2
-    echo "Short for: --fetch --pull --quiet --verbose --no-stat --stash" >&2
+    echo "Usage: $0 [-fnpqrsv] [--stat]" >&2
+    echo "Short for: --fetch --no-stat --pull --quiet --remote-only --stash --verbose" >&2
     exit 1
 fi
 set -- $GETOPT
@@ -71,6 +76,9 @@ while [ 0 != "$#" ]; do
             ;;
         -q|--quiet|-v|--verbose)
             noise="$1"
+            ;;
+        -r|--remote-only)
+            local=hide
             ;;
         --stat|-n|--no-stat)
             stat=" $1"
@@ -117,23 +125,14 @@ current_branch=$1
 if [ "z$current_branch" != "z" ] && [ "z$current_branch" != "(no branch)" ]; then
     echo "# On branch $current_branch"
 
-    if [ -n "`git config \"branch.$current_branch.merge\"`" ]; then
-        print_status "$current_branch"
-    fi
+    print_status "$current_branch"
 
     # A blank line to separate other branches
     echo "#"
 fi
 
 # The rest
-branches=$(git branch | grep -v '*' |
-    $(
-        echo "echo"; # the outer $() runs a command; it needs a verb
-        while read branch; do
-            [ -n "`git config \"branch.$branch.merge\"`" ] && echo $branch;
-        done
-    )
-)
+branches=$(git branch | grep -v '*')
 
 for branch in $branches; do
     print_status "$branch"
