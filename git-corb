@@ -1,12 +1,12 @@
 #!/bin/bash
 #
+# git Check Out Remote Branch
 # Track a branch and check it out with as little typing as possible
-#
 
 if [ "$#" = "0" ]; then
-    echo "Usage: git cob [<remote>] <branch>"
+    echo "Usage: git corb [<remote>] <branch>"
     echo
-    echo "Check Out Branch"
+    echo "Check Out Remote Branch"
     echo
     echo "If you want to create a local branch that tracks a remote branch,"
     echo "while using the same name, you can use this command instead of"
@@ -25,13 +25,13 @@ branch=$2;
 # If no remote was specified, assume origin
 if [ "x$branch" = "x" ]; then
     branch=$remote
-    remote="origin";
+    remote="origin"
 fi
 
 # If a remote is actually given as part of the branch, split them and use it
 if [ `echo $branch | awk '$1 ~ /\// { print }'` ]; then
-    remote=`echo $branch | sed 's/\/.*//'`
-    branch=`echo $branch | sed 's/.*\///'`
+    remote="${branch%%/*}"
+    branch="${branch##*/}"
 fi
 
 track_remote="`git config "branch.$branch.remote"`"
@@ -56,7 +56,7 @@ elif git log --pretty=oneline "$remote/$branch..$branch" | grep -q .; then
     exit 1
 else
     echo "Replacing $branch to track $remote/$branch:"
-    echo "] git checkout HEAD # Make sure we don't have $branch checked out"
+    echo "] git checkout $remote/$branch # Make sure we don't have $branch checked out"
     git checkout "$remote/$branch" || exit $?
     echo "] git branch -D $branch # Delete non-tracking local branch"
     git branch -D "$branch" || exit $?
