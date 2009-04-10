@@ -71,15 +71,14 @@ if git branch | sed 's/^..//' | grep -q "^$branch\$"; then
     fi
 else
     # It doesn't, so let's create it
+    echo "] git branch $branch" $from
+    git branch "$branch" $from || exit $?
+
     git config "branch.$branch.remote" "$remote"
     git config "branch.$branch.merge" "refs/heads/$branch"
-    git branch "$branch" $from
-
-    if [ $? = "0" ]; then
-        echo -n "Created branch $branch tracking remote branch $remote/$branch"
-        if [ -n "$from" ]; then
-            echo -n " from $from"
-        fi
+    echo -n "Created branch $branch tracking $remote/$branch from "
+    if [ -n "$from" ]; then
+        echo -n "$from"
         echo
     fi
 fi
