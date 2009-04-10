@@ -3,9 +3,10 @@
 if [ "$#" = "0" ]; then
     echo "Usage: git rbranch [<remote>] <branch> [<from>]"
     echo
-    echo "If you want to create a local branch that will later track a remote branch, but"
-    echo "it does not yet exist, you can use this command instead of setting up configuration"
-    echo "manually or deleting and re-creating your local branch later, after it's been pushed."
+    echo "If you want to create a local branch that will later track a remote"
+    echo "branch, but it does not yet exist, you can use this command instead"
+    echo "of setting up configuration manually or deleting and re-creating"
+    echo "your local branch later, after it's been pushed."
     echo
     echo "Args:"
     echo "    <remote>   - A remote repository, defaults to 'origin'"
@@ -33,9 +34,12 @@ fi
 from=$1
 
 # Now that we have our arguments, first check to see if the branch already exists
-if git branch | sed 's/^..//' | grep "^$branch\$" >/dev/null; then
+if git branch | sed 's/^..//' | grep -q "^$branch\$"; then
     echo "$branch already exists, not creating."
 
+    if ! git branch -r | sed 's/^..//' | grep -q "^$remote/$branch\$"; then
+        echo "Warning: The tracking branch $remote/$branch does not (yet) exists" >&2
+    fi
     # It does.  Is it already tracking?
     current_remote=`git config --get "branch.$branch.remote"`
     current_merge=`git config --get "branch.$branch.merge"`
@@ -46,7 +50,7 @@ if git branch | sed 's/^..//' | grep "^$branch\$" >/dev/null; then
         git config "branch.$branch.merge" "refs/heads/$branch"
         echo "$branch set up to track $remote/$branch"
     else
-        if [ "$remote" = "$current_remote" ] && [ "$current_merge" = "refs/heads/$branch" ]; then
+        if [ "$remote" = "$current_remote" -a "$current_merge" = "refs/heads/$branch" ]; then
             echo "$branch is already tracking $remote/$branch"
         else
             echo "$branch is tracking $current_remote/$current_remote_head instead!"
