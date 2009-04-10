@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# This will push the branch you're currently in to the remote that it's
+# tracking, if there is one.  This avoids having to correctly type the current
+# branch name, but gives you the benefit of not accidentally pushing
+# branches that aren't ready.
+#
+
+branch=`git name-rev --name-only HEAD`
+remote=`git config --get "branch.$branch.remote"`
+
+# Allow the user to specify a SHA that's not at the tip.  If they make a mistake
+# here, they should get a non fast-forward error.
+where=${1:+"$1:"}
+
+if [ "x$remote" = "x" ]; then
+    echo 'Your branch is not tracking a remote branch.  Consider using "git corb"'
+    exit 1
+fi
+
+git push $remote $where$branch
