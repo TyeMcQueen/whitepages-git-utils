@@ -16,8 +16,8 @@ fi
 
 remote=`git config --get "branch.$branch.remote"`
 
-# Allow the user to specify a SHA that's not at the tip.  If they make a mistake
-# here, they should get a non fast-forward error.
+# Allow the user to specify a SHA that's not at the tip.  If they
+# make a mistake here, they should get a non fast-forward error.
 where=${1:+"$1:"}
 
 if [ "x$remote" = "x" ]; then
