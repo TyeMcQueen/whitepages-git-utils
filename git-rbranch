@@ -34,8 +34,13 @@ fi
 
 # If a remote is actually given as part of the branch, split them and use it
 if [ `echo $branch | awk '$1 ~ /\// { print }'` ]; then
-    remote=`echo $branch | sed 's/\/.*//'`
-    branch=`echo $branch | sed 's/.*\///'`
+    remote="${branch%%/*}"
+    branch="${branch##*/}"
+fi
+
+if ! git remote | grep -q "^$remote\$"; then
+    echo "Unrecognized remote repository, $remote." >&2
+    exit 1
 fi
 
 from=$1
