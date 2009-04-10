@@ -1,11 +1,18 @@
-#!/bin/sh
+#!/bin/bash
 #
 # This will fetch and merge only the branch you're currently in, avoiding
 # fetches that you aren't interested in and possibly avoiding "non-fast-forward"
 # messages on pushes
 #
 
-branch=`git name-rev --name-only HEAD`
+ref=`git symbolic-ref HEAD 2>/dev/null`
+branch=${ref##refs/heads/}
+
+if [ -z "$branch" ]; then
+    echo "Not on any branch that I can find!"
+    exit 1
+fi
+
 remote=`git config --get "branch.$branch.remote"`
 merge=`git config --get "branch.$branch.merge" | sed 's/refs\/heads\///'`
 

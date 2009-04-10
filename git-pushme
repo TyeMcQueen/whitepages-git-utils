@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # This will push the branch you're currently in to the remote that it's
 # tracking, if there is one.  This avoids having to correctly type the current
@@ -6,7 +6,14 @@
 # branches that aren't ready.
 #
 
-branch=`git name-rev --name-only HEAD`
+ref=`git symbolic-ref HEAD 2>/dev/null`
+branch=${ref##refs/heads/}
+
+if [ -z "$branch" ]; then
+    echo "Not on any branch that I can find!"
+    exit 1
+fi
+
 remote=`git config --get "branch.$branch.remote"`
 
 # Allow the user to specify a SHA that's not at the tip.  If they make a mistake
