@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# To-do: Do an empty checkin after the branch is created.
 
 checkout=yes
 if [ x-c = "x$1" ]; then

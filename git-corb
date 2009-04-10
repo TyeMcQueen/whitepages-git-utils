@@ -2,6 +2,8 @@
 #
 # git Check Out Remote Branch
 # Track a branch and check it out with as little typing as possible
+#
+# To-do: Add --fetch option
 
 if [ "$#" = "0" ]; then
     echo "Usage: git corb [<remote>] <branch>"
