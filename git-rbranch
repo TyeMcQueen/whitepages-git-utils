@@ -74,7 +74,8 @@ if git branch | sed 's/^..//' | grep -q "^$branch\$"; then
 else
     # It doesn't, so let's create it
     echo "] git branch $branch" $from
-    git branch "$branch" $from || exit $?
+    # Don't quote $from here because passing an empty string is an error
+    git branch --no-track "$branch" $from || exit $?
 
     git config "branch.$branch.remote" "$remote"
     git config "branch.$branch.merge" "refs/heads/$branch"
