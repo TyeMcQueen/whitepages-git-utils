@@ -8,7 +8,8 @@ if [ x-c = "x$1" ]; then
     shift
 fi
 
-if [ $# -lt 1 -o 3 -lt $# ]; then
+
+if [[ $# -lt 1 || 3 -lt $# ]]; then
     echo "Usage: git rbranch [-c] [<remote>] <branch> [<from>]"
     echo
     echo "If you want to create a local branch that will later track a remote"
@@ -35,7 +36,7 @@ else
 fi
 
 # If a remote is actually given as part of the branch, split them and use it
-if [ `echo $branch | awk '$1 ~ /\// { print }'` ]; then
+if [[ $(echo $branch | awk '$1 ~ /\// { print }') ]]; then
     remote="${branch%%/*}"
     branch="${branch##*/}"
 fi
@@ -55,10 +56,10 @@ if git branch | sed 's/^..//' | grep -q "^$branch\$"; then
         echo "Warning: The tracking branch $remote/$branch does not (yet) exists" >&2
     fi
     # It does.  Is it already tracking?
-    current_remote=`git config --get "branch.$branch.remote"`
-    current_merge=`git config --get "branch.$branch.merge"`
+    current_remote=$(git config --get "branch.$branch.remote")
+    current_merge=$(git config --get "branch.$branch.merge")
 
-    if [ -z "$current_merge" ]; then
+    if [[ -z $current_merge ]]; then
         # Not tracking, set it up
         git config "branch.$branch.remote" "$remote"
         git config "branch.$branch.merge" "refs/heads/$branch"
@@ -80,12 +81,12 @@ else
     git config "branch.$branch.remote" "$remote"
     git config "branch.$branch.merge" "refs/heads/$branch"
     echo -n "Created branch $branch tracking $remote/$branch from "
-    if [ -n "$from" ]; then
+    if [[ -n $from ]]; then
         echo "$from"
     else
-        head=`git symbolic-ref HEAD 2>/dev/null`
+        head=$(git symbolic-ref HEAD 2>/dev/null)
         head=${head##refs/heads/}
-        if [ -n "$head" ]; then
+        if [[ -n $head ]]; then
             echo "$head"
         else
             echo HEAD
@@ -93,7 +94,7 @@ else
     fi
 fi
 
-if [ yes = "$checkout" ]; then
+if [[ yes = $checkout ]]; then
     echo "] git checkout $branch"
     git checkout "$branch"
 fi

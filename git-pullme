@@ -5,18 +5,19 @@
 # messages on pushes
 #
 
-ref=`git symbolic-ref HEAD 2>/dev/null`
+ref=$(git symbolic-ref HEAD 2>/dev/null)
 branch=${ref##refs/heads/}
 
-if [ -z "$branch" ]; then
+if [[ -z $branch ]]; then
     echo "Not on any branch that I can find!"
     exit 1
 fi
 
-remote=`git config --get "branch.$branch.remote"`
-merge=`git config --get "branch.$branch.merge" | sed 's/refs\/heads\///'`
+remote=$(git config --get "branch.$branch.remote")
+merge_ref=$(git config --get "branch.$branch.merge")
+merge=${merge_branch##refs/heads/}
 
-if [ "x$remote" = "x" -o "x$merge" = "x" ]; then
+if [[ -z $remote || -z $merge ]]; then
     echo 'Your branch is not tracking a remote branch.  Consider using "git corb"'
     exit 1
 fi

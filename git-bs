@@ -17,27 +17,27 @@ norm="\033[0m"
 
 function print_status() {
     branch="$1"
-    remote="`git config "branch.$branch.remote"`"
-    remote_branch="`git config "branch.$branch.merge"`"
+    remote=$(git config "branch.$branch.remote")
+    remote_branch=$(git config "branch.$branch.merge")
     track="$remote/${remote_branch##*/}"
 
-    if [ "/" = "$track" ]; then
-        if [ show = "$local" ]; then
+    if [[ "/" = $track ]]; then
+        if [[ show = $local ]]; then
             echo -e "# . $branch is only ${bold}local${norm}"
         fi
     elif git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
         echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
     else
-        set -- `git log --pretty=oneline "$branch..$track" | wc -l`
+        set -- $(git log --pretty=oneline "$branch..$track" | wc -l)
         behind="$1"
-        set -- `git log --pretty=oneline "$track..$branch" | wc -l`
+        set -- $(git log --pretty=oneline "$track..$branch" | wc -l)
         ahead="$1"
 
-        if [ 0 != "$behind" ] && [ 0 != "$ahead" ]; then
+        if [[ 0 != $behind && 0 != $ahead ]]; then
             echo -e "# X $branch and $track have ${bold}diverged${norm} by $ahead and $behind commits"
-        elif [ 0 != "$behind" ]; then
+        elif [[ 0 != $behind ]]; then
             echo -e "# < $branch is ${bold}behind${norm} $track by $behind commits"
-            if [ pull = "$pull" ]; then
+            if [[ pull = $pull ]]; then
                 echo ""
                 echo "] git checkout $branch"
                 if git checkout "$branch"; then
@@ -48,7 +48,7 @@ function print_status() {
                 fi
                 echo ""
             fi
-        elif [ 0 != "$ahead" ]; then
+        elif [[ 0 != $ahead ]]; then
             echo -e "# > $branch is ${bold}ahead${norm} of $track by $ahead commits"
         else
             echo -e "# = $branch is ${bold}current${norm} with $track"
@@ -56,15 +56,15 @@ function print_status() {
     fi
 }
 
-GETOPT=`getopt -o fnpqrsv --long fetch,no-stat,pull,quiet,remote-only,stash,verbose,stat -- "$@"`
-if [ $? != 0 ]; then
+GETOPT=$(getopt -o fnpqrsv --long fetch,no-stat,pull,quiet,remote-only,stash,verbose,stat -- "$@")
+if [[ $? != 0 ]]; then
     echo "Usage: $0 [-fnpqrsv] [--stat]" >&2
     echo "Short for: --fetch --no-stat --pull --quiet --remote-only --stash --verbose" >&2
     exit 1
 fi
 set -- $GETOPT
 
-while [ 0 != "$#" ]; do
+while [[ 0 != $# ]]; do
     case "$1" in
         -f|--fetch)
             fetch=fetch
@@ -88,7 +88,7 @@ while [ 0 != "$#" ]; do
             ;;
         --)
             shift
-            if [ 0 != "$#" ]; then
+            if [[ 0 != $# ]]; then
                 echo "Too many arguments ($*)" >&2
                 exit 1
             fi
@@ -101,18 +101,18 @@ while [ 0 != "$#" ]; do
     shift
 done
 
-if [ fetch = "$fetch" ]; then
-    for remote in `git remote`; do
+if [[ fetch = $fetch ]]; then
+    for remote in $(git remote); do
         echo "] git fetch$noise $remote"
         git fetch $noise "$remote"
         echo ''
     done
 fi
 
-if [ stash = "$stash" ] && [ pull = "$pull" ]; then
+if [[ stash = $stash && pull = $pull ]]; then
     echo ""
     echo "] git stash save git-bs auto-stash"
-    output=`git stash save git-bs auto-stash`
+    output=$(git stash save git-bs auto-stash)
     echo $output
     if echo $output | grep "No local changes" >/dev/null 2>&1; then
         stash=""
@@ -120,9 +120,8 @@ if [ stash = "$stash" ] && [ pull = "$pull" ]; then
 fi;
 
 # Current branch
-set -- `git branch | grep '*' | sed 's/*//'`
-current_branch=$1
-if [ "z$current_branch" != "z" ] && [ "z$current_branch" != "(no branch)" ]; then
+current_branch=$(git branch | grep '*' | sed 's/ *\* *//')
+if [[ -n $current_branch && $current_branch != "(no branch)" ]]; then
     echo "# On branch $current_branch"
 
     print_status "$current_branch"
@@ -138,11 +137,11 @@ for branch in $branches; do
     print_status "$branch"
 done
 
-if [ "" != "$pull" ]; then
+if [[ -n $pull ]]; then
     git checkout "$current_branch"
 fi
 
-if [ stash = "$stash" ] && [ pull = "$pull" ]; then
+if [[ stash = "$stash" && pull = "$pull" ]]; then
     echo ""
     echo "] git stash pop"
     git stash pop

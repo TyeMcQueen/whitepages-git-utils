@@ -5,7 +5,7 @@
 #
 # To-do: Add --fetch option
 
-if [ "$#" = "0" ]; then
+if [[ $# = 0 ]]; then
     echo "Usage: git corb [<remote>] <branch>"
     echo
     echo "Check Out Remote Branch"
@@ -25,25 +25,25 @@ remote=$1;
 branch=$2;
 
 # If no remote was specified, assume origin
-if [ "x$branch" = "x" ]; then
+if [[ -z $branch ]]; then
     branch=$remote
     remote="origin"
 fi
 
 # If a remote is actually given as part of the branch, split them and use it
-if [ `echo $branch | awk '$1 ~ /\// { print }'` ]; then
+if [[ -n $(echo $branch | awk '$1 ~ /\// { print }') ]]; then
     remote="${branch%%/*}"
     branch="${branch##*/}"
 fi
 
-track_remote="`git config "branch.$branch.remote"`"
-track_branch="`git config "branch.$branch.merge"`"
+track_remote=$(git config "branch.$branch.remote")
+track_branch=$(git config "branch.$branch.merge")
 track_branch="${track_branch##*/}"
-if [ "x$remote" = "x$track_remote" -a "x$branch" = "x$track_branch" ]; then
+if [[ $remote = $track_remote && $branch = $track_branch ]]; then
     echo "$branch already tracks $remote/$branch."
     echo "] git checkout $branch"
     git checkout "$branch"
-elif [ "x$track_remote" != x ]; then
+elif [[ -n $track_remote ]]; then
     echo "$branch tracks $track_remote/$track_branch, not $remote/$branch!"
     exit 1
 elif ! git branch -r | cat -E | grep -qF " $remote/$branch\$"; then
