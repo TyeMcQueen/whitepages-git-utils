@@ -51,11 +51,41 @@ fi
 
 remote=$(git config --get "branch.$branch.remote")
 merge_ref=$(git config --get "branch.$branch.merge")
-merge=${merge_branch##refs/heads/}
+merge=${merge_ref##refs/heads/}
 
 if [[ -z $remote || -z $merge ]]; then
     echo 'Your branch is not tracking a remote branch.  Consider using "git corb"'
     exit 1
 fi
 
-git pull $remote $branch:refs/remotes/$remote/$merge
+echo "] git fetch $remote $merge:refs/remotes/$remote/$merge"
+git fetch $remote $merge:refs/remotes/$remote/$merge
+echo
+
+behind=$(git rev-list "$branch..$remote/$merge" 2>/dev/null | wc -l)
+ahead=$(git rev-list "$remote/$merge..$branch" 2>/dev/null | wc -l)
+local_merges=$(git rev-list --parents "$remote/$merge..$branch" | awk 'NF > 2 {print}' | wc -l)
+
+# If we are behind the remote, we'll need to merge
+if [[ $behind -gt 0 ]]; then
+    # If we are ahead of the remote, it's a diverge
+    if [[ $ahead -gt 0 ]]; then
+        # If our changes contain no merges, and we are allowed to rebase, we will do that,
+        # avoiding superfluous merges
+        if [[ $rebase_ok = yes && $local_merges = 0 ]]; then
+            echo "Your local commits do not contain any merges, rebasing on $remote/$merge"
+            echo "] git rebase $remote/$merge"
+            git rebase "$remote/$merge"
+        # Otherwise, we must merge
+        else
+            echo "] git merge $remote/$merge"
+            git merge "$remote/$merge"
+        fi
+    # We're behind only, do a merge
+    else
+        echo "] git merge $remote/$merge"
+        git merge "$remote/$merge"
+    fi
+else
+    echo "Already up-to-date."
+fi
