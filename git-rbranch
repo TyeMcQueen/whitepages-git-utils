@@ -1,12 +1,38 @@
 #!/bin/bash
 #
-# To-do: Do an empty checkin after the branch is created.
 
+# Default to yes
 checkout=yes
-if [ x-c = "x$1" ]; then
-    checkout=no
-    shift
+
+GETOPT=$(getopt -u -o cep -- "$@")
+if [[ $? != 0 ]]; then
+    echo "Usage: $0 [-c] [-e] [-p]" >&2
+    exit 1
 fi
+set -- $GETOPT
+
+while [[ 0 != $# ]]; do
+    case "$1" in
+        -c)
+            checkout=no
+            ;;
+        -e)
+            empty=yes
+            ;;
+        -p)
+            push=yes
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Unrecognized option ($1)??" >&2
+            exit 1
+            ;;
+    esac
+    shift
+done
 
 
 if [[ $# -lt 1 || 3 -lt $# ]]; then
@@ -82,19 +108,31 @@ else
     git config "branch.$branch.merge" "refs/heads/$branch"
     echo -n "Created branch $branch tracking $remote/$branch from "
     if [[ -n $from ]]; then
-        echo "$from"
+        where=$from
     else
         head=$(git symbolic-ref HEAD 2>/dev/null)
         head=${head##refs/heads/}
         if [[ -n $head ]]; then
-            echo "$head"
+            where=$head
         else
-            echo HEAD
+            where=HEAD
         fi
     fi
+    echo $where
+
+    commit_message="Created branch $branch from $where"
+    created_branch=1
 fi
 
 if [[ yes = $checkout ]]; then
     echo "] git checkout $branch"
     git checkout "$branch"
+fi
+
+if [[ -n $created_branch && yes = $empty ]]; then
+    git commit --allow-empty -m "$commit_message"
+fi
+
+if [[ -n $created_branch && yes = $push ]]; then
+    git pushme
 fi
