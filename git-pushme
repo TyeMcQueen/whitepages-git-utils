@@ -9,6 +9,11 @@
 ref=$(git symbolic-ref HEAD 2>/dev/null)
 branch=${ref##refs/heads/}
 
+if [[ $1 = "-f" ]]; then
+    force="-f"
+    shift;
+fi
+
 if [[ -z $branch ]]; then
     echo "Not on any branch that I can find!"
     exit 1
@@ -25,4 +30,4 @@ if [[ -z $remote ]]; then
     exit 1
 fi
 
-git push $remote $where$branch
+git push $force $remote $where$branch
