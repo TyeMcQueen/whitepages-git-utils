@@ -4,32 +4,8 @@
 # Track a branch and check it out with as little typing as possible
 #
 
-GETOPT=$(getopt -u -o f --long fetch -- "$@")
-if [[ $? != 0 ]]; then
-    echo "Usage: $0 [-f | --fetch]" >&2
-    exit 1
-fi
-set -- $GETOPT
-
-while [[ 0 != $# ]]; do
-    case "$1" in
-        -f|--fetch)
-            fetch=yes
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *)
-            echo "Unrecognized option ($1)??" >&2
-            exit 1
-            ;;
-    esac
-    shift
-done
-
-if [[ $# = 0 ]]; then
-    echo "Usage: git corb [<remote>] <branch>"
+function usage() {
+    echo "Usage: git corb [-f | --fetch] [<remote>] <branch>"
     echo
     echo "Check Out Remote Branch"
     echo
@@ -39,8 +15,42 @@ if [[ $# = 0 ]]; then
     echo "Lots of special cases are detected and handled."
     echo
     echo "Args:"
+    echo "    -f         - Fetch from the remote before creating a branch"
     echo "    <remote>   - A remote repository, defaults to 'origin'"
     echo "    <branch>   - The name of a remote branch"
+}
+
+GETOPT=$(getopt -u -o hf --long fetch -- "$@")
+if [[ $? != 0 ]]; then
+    usage
+    exit 1
+fi
+set -- $GETOPT
+
+while [[ 0 != $# ]]; do
+    case "$1" in
+        -f|--fetch)
+            fetch=yes
+            ;;
+        -h)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Unrecognized option ($1)??" >&2
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [[ $# = 0 ]]; then
+    usage
     exit 1
 fi
 

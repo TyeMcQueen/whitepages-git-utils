@@ -5,6 +5,42 @@
 # messages on pushes
 #
 
+function usage() {
+    echo "Usage: git pullme [-r | --no-rebase]" >&2
+}
+
+# Default is that we will allow a rebase
+rebase_ok=yes
+
+GETOPT=$(getopt -u -o hr --long no-rebase -- "$@")
+if [[ $? != 0 ]]; then
+    usage
+    exit 1
+fi
+set -- $GETOPT
+
+while [[ 0 != $# ]]; do
+    case "$1" in
+        -r|--no-rebase)
+            rebase_ok=no
+            ;;
+        -h)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Unrecognized option ($1)??" >&2
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
 ref=$(git symbolic-ref HEAD 2>/dev/null)
 branch=${ref##refs/heads/}
 

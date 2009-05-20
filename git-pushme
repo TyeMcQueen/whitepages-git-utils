@@ -6,13 +6,44 @@
 # branches that aren't ready.
 #
 
+function usage() {
+    echo "Usage: git pushme [-f | --force] [commit]" >&2
+}
+
+force=""
+
+GETOPT=$(getopt -u -o hf --long force -- "$@")
+if [[ $? != 0 ]]; then
+    usage
+    exit 1
+fi
+set -- $GETOPT
+
+while [[ 0 != $# ]]; do
+    case "$1" in
+        -f|--force)
+            force="-f"
+            ;;
+        -h)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Unrecognized option ($1)??" >&2
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+
 ref=$(git symbolic-ref HEAD 2>/dev/null)
 branch=${ref##refs/heads/}
-
-if [[ $1 = "-f" ]]; then
-    force="-f"
-    shift;
-fi
 
 if [[ -z $branch ]]; then
     echo "Not on any branch that I can find!"

@@ -1,43 +1,7 @@
 #!/bin/bash
 #
 
-# Default values for options
-checkout=yes
-empty=yes
-push=no
-
-GETOPT=$(getopt -u -o cep -- "$@")
-if [[ $? != 0 ]]; then
-    echo "Usage: $0 [-c] [-e] [-p]" >&2
-    exit 1
-fi
-set -- $GETOPT
-
-while [[ 0 != $# ]]; do
-    case "$1" in
-        -c)
-            checkout=no
-            ;;
-        -e)
-            empty=no
-            ;;
-        -p)
-            push=yes
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *)
-            echo "Unrecognized option ($1)??" >&2
-            exit 1
-            ;;
-    esac
-    shift
-done
-
-
-if [[ $# -lt 1 || 3 -lt $# ]]; then
+function usage() {
     echo "Usage: git rbranch [-c] [-e] [-p] [<remote>] <branch> [<from>]"
     echo
     echo "If you want to create a local branch that will later track a remote"
@@ -53,6 +17,51 @@ if [[ $# -lt 1 || 3 -lt $# ]]; then
     echo "    <remote>   - A remote repository, defaults to 'origin'"
     echo "    <branch>   - The name of a remote branch"
     echo "    <from>     - Starting point for the new branch"
+}
+
+# Default values for options
+checkout=yes
+empty=yes
+push=no
+
+GETOPT=$(getopt -u -o hcep -- "$@")
+if [[ $? != 0 ]]; then
+    usage
+    exit 1
+fi
+set -- $GETOPT
+
+while [[ 0 != $# ]]; do
+    case "$1" in
+        -c)
+            checkout=no
+            ;;
+        -e)
+            empty=no
+            ;;
+        -p)
+            push=yes
+            ;;
+        -h)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Unrecognized option ($1)??" >&2
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+
+if [[ $# -lt 1 || 3 -lt $# ]]; then
+    usage
     exit 1
 fi
 

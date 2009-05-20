@@ -56,10 +56,14 @@ function print_status() {
     fi
 }
 
-GETOPT=$(getopt -o fnpqrsv --long fetch,no-stat,pull,quiet,remote-only,stash,verbose,stat -- "$@")
-if [[ $? != 0 ]]; then
-    echo "Usage: $0 [-fnpqrsv] [--stat]" >&2
+function usage() {
+    echo "Usage: git bs [-fnpqrsv] [--stat]" >&2
     echo "Short for: --fetch --no-stat --pull --quiet --remote-only --stash --verbose" >&2
+}
+
+GETOPT=$(getopt -o hfnpqrsv --long fetch,no-stat,pull,quiet,remote-only,stash,verbose,stat -- "$@")
+if [[ $? != 0 ]]; then
+    usage
     exit 1
 fi
 set -- $GETOPT
@@ -86,15 +90,21 @@ while [[ 0 != $# ]]; do
         --stash|-s)
             stash="stash"
             ;;
+        -h)
+            usage
+            exit 0
+            ;;
         --)
             shift
             if [[ 0 != $# ]]; then
                 echo "Too many arguments ($*)" >&2
+                usage
                 exit 1
             fi
             ;;
         *)
             echo "Unrecognized option ($1)??" >&2
+            usage
             exit 1
             ;;
     esac
