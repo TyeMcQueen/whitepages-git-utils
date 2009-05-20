@@ -3,7 +3,30 @@
 # git Check Out Remote Branch
 # Track a branch and check it out with as little typing as possible
 #
-# To-do: Add --fetch option
+
+GETOPT=$(getopt -u -o f --long fetch -- "$@")
+if [[ $? != 0 ]]; then
+    echo "Usage: $0 [-f | --fetch]" >&2
+    exit 1
+fi
+set -- $GETOPT
+
+while [[ 0 != $# ]]; do
+    case "$1" in
+        -f|--fetch)
+            fetch=yes
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Unrecognized option ($1)??" >&2
+            exit 1
+            ;;
+    esac
+    shift
+done
 
 if [[ $# = 0 ]]; then
     echo "Usage: git corb [<remote>] <branch>"
@@ -34,6 +57,12 @@ fi
 if [[ -n $(echo $branch | awk '$1 ~ /\// { print }') ]]; then
     remote="${branch%%/*}"
     branch="${branch##*/}"
+fi
+
+# Fetch the branch from the remote, if requested
+if [[ -n $fetch ]]; then
+    echo "] git fetch $remote $branch"
+    git fetch "$remote" "$branch"
 fi
 
 track_remote=$(git config "branch.$branch.remote")
