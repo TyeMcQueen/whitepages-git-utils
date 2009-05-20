@@ -25,12 +25,12 @@ function print_status() {
         if [[ show = $local ]]; then
             echo -e "# . $branch is only ${bold}local${norm}"
         fi
-    elif git log "$track^!" 2>&1 | grep -q 'unknown revision'; then
+    elif git rev-parse "$track" 2>&1 | grep -q 'unknown revision'; then
         echo -e "# ! $branch is tracking ${bold}non-existent${norm} remote branch $track"
     else
-        set -- $(git log --pretty=oneline "$branch..$track" | wc -l)
+        set -- $(git rev-list "$branch..$track" | wc -l)
         behind="$1"
-        set -- $(git log --pretty=oneline "$track..$branch" | wc -l)
+        set -- $(git rev-list "$track..$branch" | wc -l)
         ahead="$1"
 
         if [[ 0 != $behind && 0 != $ahead ]]; then

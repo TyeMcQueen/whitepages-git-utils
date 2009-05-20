@@ -46,14 +46,14 @@ if [[ $remote = $track_remote && $branch = $track_branch ]]; then
 elif [[ -n $track_remote ]]; then
     echo "$branch tracks $track_remote/$track_branch, not $remote/$branch!"
     exit 1
-elif ! git branch -r | cat -E | grep -qF " $remote/$branch\$"; then
+elif [[ -z $(git for-each-ref "refs/remotes/$remote/$branch") ]]; then
     echo "There is no $remote/$branch (tracking) branch!"
     exit 1
-elif ! git branch | cat -E | grep -qF " $branch\$"; then
+elif [[ -z $(git for-each-ref "refs/heads/$branch") ]]; then
     echo "Attempting to checkout and have $branch track from $remote:"
     echo "] git checkout -b $branch $remote/$branch"
     git checkout -b "$branch" "$remote/$branch"
-elif git log --pretty=oneline "$remote/$branch..$branch" | grep -q .; then
+elif git rev-list "$remote/$branch..$branch" | grep -q .; then
     echo "Making $branch track $remote/$branch would lose information!"
     exit 1
 else

@@ -28,7 +28,7 @@ fi
 remote=$1; shift;
 
 # If remote is not recognized, assume origin
-if ! git remote | grep "^$remote\$" >/dev/null; then
+if [[ -z $(git config --get "remote.$remote.url") ]]; then
     branch=$remote
     remote="origin"
 else
@@ -41,7 +41,7 @@ if [[ $(echo $branch | awk '$1 ~ /\// { print }') ]]; then
     branch="${branch##*/}"
 fi
 
-if ! git remote | grep -q "^$remote\$"; then
+if [[ -z $(git config --get "remote.$remote.url") ]]; then
     echo "Unrecognized remote repository, $remote." >&2
     exit 1
 fi
@@ -49,10 +49,10 @@ fi
 from=$1
 
 # Now that we have our arguments, first check to see if the branch already exists
-if git branch | sed 's/^..//' | grep -q "^$branch\$"; then
+if [[ -n $(git for-each-ref "refs/heads/$branch") ]]; then
     echo "$branch already exists, not creating."
 
-    if ! git branch -r | sed 's/^..//' | grep -q "^$remote/$branch\$"; then
+    if [[ -z $(git for-each-ref "refs/remotes/$remote/$branch") ]]; then
         echo "Warning: The tracking branch $remote/$branch does not (yet) exists" >&2
     fi
     # It does.  Is it already tracking?
