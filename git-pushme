@@ -61,4 +61,5 @@ if [[ -z $remote ]]; then
     exit 1
 fi
 
+echo "] git push $force $remote $where$branch"
 git push $force $remote $where$branch
