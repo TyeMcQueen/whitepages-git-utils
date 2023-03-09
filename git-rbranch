@@ -13,7 +13,7 @@ function usage() {
     echo "    -c         - Only create the branch, don't check it out"
     echo "    -e         - Don't create an empty commit at the start of the branch (default"
     echo "                 is to create such a commit)"
-    echo "    -p         - Only create the branch, don't check it out"
+    echo "    -p         - Push the new branch (default is not to push)"
     echo "    <remote>   - A remote repository, defaults to 'origin'"
     echo "    <branch>   - The name of a remote branch"
     echo "    <from>     - Starting point for the new branch"
